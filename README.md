@@ -25,9 +25,19 @@ Target platform:
 
 * KDE Plasma 5
 
-Development platform:
+Future platform:
 
-* KDE Plasma 6
+* KDE Plasma 6 (research in progress)
+
+## Platform Support
+
+The current implementation targets KDE Plasma 5.
+
+Initial Plasma 6 compatibility research has been completed and documented in:
+
+docs/plasma6-compatibility.md
+
+Plasma 6 support is not currently a development priority.
 
 ## Licence
 

@@ -1,6 +1,4 @@
 {
-    "KPackageStructure": "Plasma/Applet",
-    "X-Plasma-API-Minimum-Version": "6.0",
     "KPlugin": {
         "Authors": [
             {
@@ -57,5 +55,5 @@
     "Keywords[pt_BR]": "fluxo de trabalho;desligamento;reinicialização;encerrar sessão;energia;sessão;",
     "Keywords[uk]": "сценарій вимкнення;вимкнення;перезавантаження;вихід;живлення;сеанс;",
     "X-Plasma-API": "declarativeappletscript",
-    "X-Plasma-MainScript": "ui/main.qml"
+    "X-Plasma-MainScript": "ui/lockout.qml"
 }
