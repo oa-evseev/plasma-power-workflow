@@ -14,4 +14,10 @@ ConfigModel {
          icon: "preferences-desktop-plasma"
          source: "ConfigGeneral.qml"
     }
+
+    ConfigCategory {
+        name: i18n("Workflow")
+        icon: "system-run"
+        source: "ConfigWorkflow.qml"
+    }
 }

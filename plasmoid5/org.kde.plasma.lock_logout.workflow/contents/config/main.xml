@@ -36,4 +36,21 @@
     </entry>
   </group>
 
+  <group name="Workflow">
+    <entry name="workflowScript" type="String">
+      <label>Workflow script path.</label>
+      <default>builtin</default>
+    </entry>
+
+    <entry name="workflowPollingInterval" type="Int">
+      <label>Workflow status polling interval in milliseconds.</label>
+      <default>1000</default>
+    </entry>
+
+    <entry name="proceedOnError" type="Bool">
+      <label>Proceed with power action if workflow reports a non-critical error.</label>
+      <default>false</default>
+    </entry>
+  </group>
+
 </kcfg>
