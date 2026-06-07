@@ -97,7 +97,7 @@ Additional fields are optional:
 
   "workflow_name": "Shutdown Workflow",
 
-  "step_name": "Waiting for Yandex Disk",
+  "step_name": "Waiting for the Sync",
   "step_current": 2,
   "step_total": 5,
 
@@ -149,7 +149,7 @@ After receiving `success`, the plasmoid performs the requested logout, reboot, o
   "id": "7b0a7d8f",
   "state": "error",
   "on_error": "terminate",
-  "message": "Yandex Disk synchronisation timed out"
+  "message": "Synchronisation timed out"
 }
 ```
 
