@@ -4,7 +4,7 @@
 
 A KDE Plasma power workflow plasmoid.
 
-The plasmoid inserts a configurable workflow stage between the user's power action selection and the actual execution of that action. It allows external scripts or applications to perform custom tasks before logout, reboot, or shutdown, while providing progress feedback to the user.
+The plasmoid inserts a configurable workflow stage between the user's session action selection and the actual execution of that action. It allows external scripts or applications to perform custom tasks before logout, reboot, or shutdown, while providing progress feedback to the user.
 
 Typical use cases include synchronisation, backups, virtual machine shutdown, container management, and other user-defined workflows. The plasmoid itself remains workflow-agnostic and communicates only with an external workflow process.
 
@@ -19,7 +19,7 @@ Typical use cases include synchronisation, backups, virtual machine shutdown, co
 
 ## Current Status
 
-The project is currently based on the KDE Plasma Lock/Logout plasmoid and serves as the foundation for workflow integration development.
+The core workflow engine, progress reporting, workflow configuration, and error handling have been implemented and tested on KDE Plasma 5.
 
 Target platform:
 
@@ -122,7 +122,7 @@ cancelled
 ```text
 terminate
 proceed
-ask
+ask (reserved for future implementation)
 ```
 
 | Policy    | Behaviour                                                                          |
@@ -140,7 +140,23 @@ ask
 }
 ```
 
-After receiving `success`, the plasmoid performs the requested logout, reboot, or shutdown action.
+After receiving `success`, the plasmoid performs the originally requested KDE session action.
+
+### Supported Actions
+
+```text
+shutdown
+reboot
+logout
+lock
+switch-user
+sleep
+hibernate
+```
+
+### Invalid Responses
+
+Malformed JSON or unsupported states are treated as workflow failures.
 
 ### Error Response
 
