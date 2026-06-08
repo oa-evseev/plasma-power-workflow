@@ -41,7 +41,7 @@
         "ServiceTypes": [
             "Plasma/Applet"
         ],
-        "Version": "0.1.0",
+        "Version": "0.1.1",
         "Website": "https://github.com/oa-evseev/plasma-power-workflow"
     },
     "Keywords": "Workflow;Shutdown;Reboot;Logout;Power;Session;",

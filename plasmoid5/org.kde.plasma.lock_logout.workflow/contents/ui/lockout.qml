@@ -273,25 +273,25 @@ Flow {
     function workflowAction(operation) {
         switch (operation) {
             case "lock":
-                return "lock"
+                return "Lock"
 
             case "switchUser":
-                return "switch-user"
+                return "Switch User"
 
             case "requestShutdown":
-                return "shutdown"
+                return "Shutdown"
 
             case "requestReboot":
-                return "reboot"
+                return "Reboot"
 
             case "requestLogout":
-                return "logout"
+                return "Logout"
 
             case "suspend":
-                return "sleep"
+                return "Sleep"
 
             case "hibernate":
-                return "hibernate"
+                return "Hibernate"
 
             default:
                 return ""
@@ -300,8 +300,12 @@ Flow {
 
     function resetWorkflowState(operation, action) {
 
-        workflowWindow.showForceButton = false
+        workflowWindow.showForceButton = plasmoid.configuration.allowForceDefaultAction
         workflowWindow.forceButtonText = ""
+        workflowWindow.errorMessage = ""
+
+        forceTimer.stop()
+        lockout.forceCountdownSeconds = 0
 
         lockout.workflowRunning = true
         lockout.workflowPolling = false

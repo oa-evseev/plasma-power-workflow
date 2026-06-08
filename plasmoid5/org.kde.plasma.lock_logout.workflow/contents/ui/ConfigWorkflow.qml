@@ -32,7 +32,10 @@ Kirigami.FormLayout {
     ]
 
     ColumnLayout {
-        Kirigami.FormData.label: ""
+        Kirigami.FormData.isSection: true
+
+        Layout.alignment: Qt.AlignHCenter
+        Layout.preferredWidth: 420
 
         Layout.fillWidth: true
 
@@ -94,14 +97,16 @@ Kirigami.FormLayout {
                 }
             }
         }
-    }
 
-    QtControls.Label {
-        Kirigami.FormData.label: ""
+        QtControls.Label {
+            text: "Leave a field empty to use the default KDE behaviour."
 
-        text: i18n("Leave a field empty to use the default KDE behaviour.")
+            horizontalAlignment: Text.AlignHCenter
 
-        wrapMode: Text.WordWrap
+            Layout.alignment: Qt.AlignHCenter
+
+            Layout.bottomMargin: Kirigami.Units.largeSpacing * 2
+        }
     }
 
     QtControls.SpinBox {
