@@ -37,9 +37,39 @@
   </group>
 
   <group name="Workflow">
-    <entry name="workflowScript" type="String">
-      <label>Workflow script path.</label>
-      <default>builtin</default>
+
+    <entry name="shutdownScript" type="String">
+      <label>Shutdown workflow script.</label>
+      <default></default>
+    </entry>
+    <entry name="rebootScript" type="String">
+      <label>Reboot workflow script.</label>
+      <default></default>
+    </entry>
+
+    <entry name="logoutScript" type="String">
+      <label>Logout workflow script.</label>
+      <default></default>
+    </entry>
+
+    <entry name="lockScript" type="String">
+      <label>Lock workflow script.</label>
+      <default></default>
+    </entry>
+
+    <entry name="sleepScript" type="String">
+      <label>Sleep workflow script.</label>
+      <default></default>
+    </entry>
+
+    <entry name="hibernateScript" type="String">
+      <label>Hibernate workflow script.</label>
+      <default></default>
+    </entry>
+
+    <entry name="switchUserScript" type="String">
+      <label>Switch user workflow script.</label>
+      <default></default>
     </entry>
 
     <entry name="workflowPollingInterval" type="Int">
@@ -47,10 +77,21 @@
       <default>1000</default>
     </entry>
 
-    <entry name="proceedOnError" type="Bool">
-      <label>Proceed with power action if workflow reports a non-critical error.</label>
+    <entry name="allowForceDefaultAction" type="Bool">
+      <label>Allow forcing the default KDE action after workflow failure.</label>
       <default>false</default>
     </entry>
+
+    <entry name="proceedOnNonCriticalError" type="Bool">
+      <label>Proceed automatically after a non-critical workflow error.</label>
+      <default>false</default>
+    </entry>
+
+    <entry name="nonCriticalErrorDelay" type="Int">
+      <label>Delay before proceeding after a non-critical workflow error.</label>
+      <default>15</default>
+    </entry>
+
   </group>
 
 </kcfg>

@@ -8,10 +8,12 @@
 import QtQuick 2.0
 import QtQuick.Controls 2.5 as QtControls
 import QtQuick.Window 2.2
+import QtQuick.Layouts 1.3
 
 Window {
     id: root
     signal cancelRequested()
+    signal forceRequested()
 
     property string workflowName: ""
     property string stepName: ""
@@ -22,6 +24,10 @@ Window {
     property int stepPercent: 0
     property int workflowPercent: 0
     property bool workflowPolling: false
+
+    property bool showForceButton: false
+    property string forceButtonText: ""
+    property string errorMessage: ""
 
     flags: Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
     visible: false
@@ -36,39 +42,13 @@ Window {
         }
     }
 
-    Timer {
-        id: workflowPoller
-
-        repeat: true
-
-        interval: plasmoid.configuration.workflowPollingInterval
-
-        running: lockout.workflowPolling
-
-        onTriggered: {
-            pollWorkflow()
-        }
-    }
-
-    function pollWorkflow() {
-        if (!workflowId) {
-            return
-        }
-
-        executable.connectSource(
-            getWorkflowScript() +
-            " status " +
-            workflowId
-        )
-    }
-
     Rectangle {
         anchors.fill: parent
         color: "#60000000"
 
         Rectangle {
             width: 500
-            height: 350
+            height: root.errorMessage !== "" ? 380 : 350
 
             anchors.centerIn: parent
 
@@ -105,6 +85,16 @@ Window {
                     font.pixelSize: 16
 
                     anchors.horizontalCenter: parent.horizontalCenter
+                }
+
+                Text {
+                    visible: root.errorMessage !== ""
+
+                    text: root.errorMessage
+
+                    color: "orange"
+
+                    wrapMode: Text.WordWrap
                 }
 
                 Item { width: 1; height: 10 }
@@ -176,14 +166,28 @@ Window {
                     height: 10
                 }
 
-                QtControls.Button {
-                    text: "Cancel"
-
+                RowLayout {
                     anchors.horizontalCenter: parent.horizontalCenter
 
-                    onClicked: {
-                        root.visible = false
-                        root.cancelRequested()
+                    spacing: 10
+
+                    QtControls.Button {
+                        visible: root.showForceButton
+
+                        text: root.forceButtonText
+
+                        onClicked: {
+                            root.forceRequested()
+                        }
+                    }
+
+                    QtControls.Button {
+                        text: "Cancel"
+
+                        onClicked: {
+                            root.visible = false
+                            root.cancelRequested()
+                        }
                     }
                 }
             }

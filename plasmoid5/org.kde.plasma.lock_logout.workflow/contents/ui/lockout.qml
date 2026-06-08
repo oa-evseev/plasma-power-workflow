@@ -32,13 +32,16 @@ Flow {
 
     property string onErrorPolicy: "terminate"
     property string pendingOperation: ""
-    property string pendingAction: ""
+    property string pendingActionName: ""
+
+    property bool forceCountdownRunning: false
+    property int forceCountdownSeconds: 0
 
     property string startCommand: ""
     property string statusCommand: ""
     property string cancelCommand: ""
 
-    property string workflowScript: plasmoid.configuration.workflowScript
+    property string pendingScript: ""
 
     Layout.minimumWidth: {
         if (plasmoid.formFactor === PlasmaCore.Types.Vertical) {
@@ -135,6 +138,29 @@ Flow {
         }
     }
 
+    Timer {
+        id: forceTimer
+
+        interval: 1000
+
+        repeat: true
+
+        onTriggered: {
+            lockout.forceCountdownSeconds--
+
+            if (lockout.forceCountdownSeconds <= 0) {
+                stop()
+
+                workflowWindow.visible = false
+                lockout.workflowRunning = false
+
+                session[lockout.pendingOperation]()
+            } else {
+                updateForceButton()
+            }
+        }
+    }
+
     WorkflowDialog {
         id: workflowWindow
 
@@ -149,6 +175,14 @@ Flow {
 
         onCancelRequested: {
             cancelWorkflow()
+        }
+        onForceRequested: {
+            forceTimer.stop()
+
+                workflowWindow.visible = false
+                lockout.workflowRunning = false
+
+                session[lockout.pendingOperation]()
         }
     }
 
@@ -208,16 +242,42 @@ Flow {
         performOperation(what)
     }
 
-    function getWorkflowScript() {
-        if (!workflowScript || workflowScript === "" || workflowScript === "builtin") {
-            return "~/.local/share/plasma/plasmoids/org.kde.plasma.lock_logout.workflow/contents/scripts/minimal-workflow.sh"
-        }
+    function getWorkflowScript(operation) {
+        switch (operation) {
+            case "lock":
+                return plasmoid.configuration.lockScript
 
-        return workflowScript
+            case "switchUser":
+                return plasmoid.configuration.switchUserScript
+
+            case "requestShutdown":
+                return plasmoid.configuration.shutdownScript
+
+            case "requestReboot":
+                return plasmoid.configuration.rebootScript
+
+            case "requestLogout":
+                return plasmoid.configuration.logoutScript
+
+            case "suspend":
+                return plasmoid.configuration.sleepScript
+
+            case "hibernate":
+                return plasmoid.configuration.hibernateScript
+
+            default:
+                return ""
+        }
     }
 
     function workflowAction(operation) {
         switch (operation) {
+            case "lock":
+                return "lock"
+
+            case "switchUser":
+                return "switch-user"
+
             case "requestShutdown":
                 return "shutdown"
 
@@ -227,12 +287,22 @@ Flow {
             case "requestLogout":
                 return "logout"
 
+            case "suspend":
+                return "sleep"
+
+            case "hibernate":
+                return "hibernate"
+
             default:
                 return ""
         }
     }
 
     function resetWorkflowState(operation, action) {
+
+        workflowWindow.showForceButton = false
+        workflowWindow.forceButtonText = ""
+
         lockout.workflowRunning = true
         lockout.workflowPolling = false
 
@@ -251,19 +321,23 @@ Flow {
         lockout.onErrorPolicy = "terminate"
 
         lockout.pendingOperation = operation
-        lockout.pendingAction = action
+        lockout.pendingActionName = action
+
+        lockout.pendingScript = getWorkflowScript(operation)
     }
 
     function performOperation(operation) {
+        var workflowScript = getWorkflowScript(operation)
+
         print(
             "Power Workflow:",
             operation,
             "workflowScript=",
-            getWorkflowScript()
+            workflowScript
         )
 
-        if (operation === "lock") {
-            session.lock()
+        if (!workflowScript || workflowScript === "") {
+            session[operation]()
             return
         }
 
@@ -287,7 +361,7 @@ Flow {
 
     function startWorkflow(action) {
         lockout.startCommand =
-        getWorkflowScript() +
+        lockout.pendingScript +
         " start " +
         action
 
@@ -313,7 +387,7 @@ Flow {
         }
 
         lockout.statusCommand =
-        getWorkflowScript() +
+        lockout.pendingScript +
         " status " +
         lockout.workflowId
 
@@ -323,9 +397,11 @@ Flow {
     function cancelWorkflow() {
         stopWorkflowPolling()
 
+        forceTimer.stop()
+
         if (lockout.workflowId !== "") {
             lockout.cancelCommand =
-            getWorkflowScript() +
+            lockout.pendingScript +
             " cancel " +
             lockout.workflowId
 
@@ -353,8 +429,23 @@ Flow {
         try {
             return JSON.parse(stdout)
         } catch (e) {
-            print("Invalid workflow JSON:", context)
-            print(stdout)
+            lockout.workflowState = "error"
+
+            lockout.workflowName = "Workflow failed"
+
+            lockout.stepName =
+            "Invalid JSON returned by workflow"
+
+            workflowWindow.errorMessage =
+            lockout.stepName
+
+            workflowWindow.showForceButton =
+            plasmoid.configuration.allowForceDefaultAction
+
+            finishWorkflowError({
+                message: "Invalid JSON returned by workflow"
+            })
+
             return null
         }
     }
@@ -488,6 +579,11 @@ Flow {
     }
 
     function finishWorkflowSuccess() {
+        forceTimer.stop()
+
+        workflowWindow.showForceButton = false
+        workflowWindow.errorMessage = ""
+
         lockout.workflowName = "Workflow completed"
         lockout.stepName = "Workflow completed successfully"
 
@@ -499,8 +595,7 @@ Flow {
 
         print("Workflow success:", lockout.pendingOperation)
 
-        // Disabled during workflow development.
-        // session[lockout.pendingOperation]()
+        session[lockout.pendingOperation]()
     }
 
     function finishWorkflowError(status) {
@@ -509,25 +604,57 @@ Flow {
 
         print("Workflow error:", lockout.onErrorPolicy, lockout.stepName)
 
-        if (lockout.onErrorPolicy === "proceed") {
-            // TODO: Add countdown before proceeding.
-            return
+        workflowWindow.errorMessage = lockout.stepName
+
+        if (
+            lockout.onErrorPolicy === "proceed" &&
+            plasmoid.configuration.proceedOnNonCriticalError &&
+            plasmoid.configuration.allowForceDefaultAction
+        ) {
+
+            workflowWindow.showForceButton = true
+
+            lockout.forceCountdownSeconds =
+            plasmoid.configuration.nonCriticalErrorDelay
+
+            updateForceButton()
+
+            forceTimer.start()
+
+                return
         }
 
-        if (lockout.onErrorPolicy === "ask") {
-            // TODO: Add Continue / Cancel UI.
-            return
-        }
+        forceTimer.stop()
 
-        // terminate: keep the window open.
-        // The user can close it with Cancel.
+        workflowWindow.showForceButton =
+        plasmoid.configuration.allowForceDefaultAction
+
+        if (plasmoid.configuration.allowForceDefaultAction) {
+            workflowWindow.forceButtonText =
+            "Force " + lockout.pendingActionName
+        }
     }
 
     function finishWorkflowCancelled() {
+        forceTimer.stop()
+
+        workflowWindow.showForceButton = false
+        workflowWindow.errorMessage = ""
+
         lockout.workflowName = "Workflow cancelled"
         lockout.stepName = "Workflow was cancelled"
 
+        workflowWindow.showForceButton = false
+
         lockout.workflowRunning = false
-        workflowWindow.visible = false
+    }
+
+    function updateForceButton() {
+        workflowWindow.forceButtonText =
+        "Force " +
+        lockout.pendingActionName +
+        " (" +
+        lockout.forceCountdownSeconds +
+        ")"
     }
 }

@@ -16,7 +16,7 @@ start)
     ID=$(date +%s)-$$
 
     (
-        for p in $(seq 0 100); do
+        for p in $(seq 0 99); do
 
             update_status "$ID" \
 "{\"id\":\"$ID\",\"state\":\"running\",\"on_error\":\"terminate\",\"workflow_name\":\"Minimal Workflow\",\"step_name\":\"Demo Delay\",\"step_current\":1,\"step_total\":1,\"step_percent\":$p,\"workflow_percent\":$p}"
